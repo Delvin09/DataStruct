@@ -1,6 +1,8 @@
-﻿namespace DataStruct.Lib
+﻿using DataStruct.Abstractions;
+
+namespace DataStruct.Lib
 {
-    public class MyList
+    public class MyList : IMyList
     {
         private object?[] _items = new object[6];
 
