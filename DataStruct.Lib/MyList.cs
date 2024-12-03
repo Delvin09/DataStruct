@@ -2,7 +2,7 @@
 {
     public class MyList
     {
-        private object?[] _items = new object[10];
+        private object?[] _items = new object[6];
 
         public int Count { get; private set; }
 
