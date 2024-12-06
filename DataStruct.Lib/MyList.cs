@@ -10,12 +10,12 @@
         {
             get
             {
-                if (i >= Count) throw new IndexOutOfRangeException();
+                if (i >= 0 && i >= Count) throw new IndexOutOfRangeException();
                 return _items[i];
             }
             set
             {
-                if (i >= Count) throw new IndexOutOfRangeException();
+                if (i >= 0 && i >= Count) throw new IndexOutOfRangeException();
                 _items[i] = value;
             }
         }
@@ -91,6 +91,11 @@
             {
                 Array.Resize(ref _items, Count * 2);
             }
+        }
+
+        public void Clear()
+        {
+            for (int i = 0; i < Count; i++) _items[i] = null;
         }
     }
 }
