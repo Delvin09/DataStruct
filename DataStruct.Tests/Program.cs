@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿using DataStruct.Lib;
+using System.Collections;
+using System.Runtime.InteropServices;
 
 namespace DataStruct.Tests
 {
@@ -215,6 +217,51 @@ namespace DataStruct.Tests
         }
     }
 
+    class Cage<T> : ICage<T> where T : IPet
+    {
+        private T? _pet = default;
+
+        public Cage()
+        {
+        }
+
+        public Cage(T pet)
+        {
+            _pet = pet;
+        }
+
+        public bool SomeMethod<U>(U arg)
+        {
+
+        }
+
+        public void InCage(T pet)
+        {
+            _pet = pet;
+        }
+
+        public T? OutCage()
+        {
+            _pet = default;
+            return _pet;
+        }
+    }
+
+    interface ICage<T> : IInCage<T>, IOutCage<T>
+        where T : IPet
+    {
+    }
+
+    interface IInCage<in T> where T: IPet // КОНТРАВАРІАНТНІСТЬ
+    {
+        void InCage(T pet);
+    }
+
+    interface IOutCage<out T> where T : IPet // КОВАРИАНТНІСТЬ
+    {
+        T? OutCage();
+    }
+
     readonly struct Card
     {
         public readonly int value;
@@ -231,14 +278,34 @@ namespace DataStruct.Tests
 
     internal class Program
     {
+        static T Create<T>() where T : IPet, new()
+        {
+            return new T();
+        }
+
+
         static void Main(string[] args)
         {
             using var collar = new Collar();
 
             try
             {
+                IPet c = Create<>();
+
+
+                IPet pet = CreateDog(new int[] { 1, 2,3});
+                Pet pet2 = CreateDog(new Dictionary<int, string> { });
+
                 Cat barsik = new Cat("barsik");
                 Cat murka = new Cat("murka");
+
+                IOutCage<Cat> cage = new Cage<Cat>(murka);
+                IOutCage<IPet> cage1 = cage;
+                IPet? pp = cage1.OutCage();
+
+                IInCage<IPet> cage2 = new Cage<IPet>(murka);
+                IInCage<Dog> cage3 = cage2;
+                cage3.InCage()
 
                 ISomthing somthing = barsik;
                 somthing.Do();
@@ -251,6 +318,8 @@ namespace DataStruct.Tests
                 voiced.Voice();
 
                 Dog bobik = new Dog("bobik", new Collar());
+
+                var dogCage = new Cage<Dog>(bobik);
 
                 Duck donald = new Duck("donald");
 

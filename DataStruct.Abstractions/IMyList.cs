@@ -6,12 +6,8 @@ using System.Threading.Tasks;
 
 namespace DataStruct.Abstractions
 {
-    public interface IMyList : IMyCollection
+    public interface IMyList<T> : IMyCollection<T>
     {
-        int Count { get; }
-
-        void Add(object? id);
-
-        void Clear();
+        T? this[int index] { get; set; }
     }
 }
