@@ -230,11 +230,6 @@ namespace DataStruct.Tests
             _pet = pet;
         }
 
-        public bool SomeMethod<U>(U arg)
-        {
-
-        }
-
         public void InCage(T pet)
         {
             _pet = pet;
