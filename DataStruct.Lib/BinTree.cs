@@ -1,8 +1,4 @@
-﻿
-using System.Runtime.InteropServices;
-using System.Xml.Linq;
-
-namespace DataStruct.Lib
+﻿namespace DataStruct.Lib
 {
     public partial class BinTree
     {
@@ -73,30 +69,30 @@ namespace DataStruct.Lib
             };
         }
 
-        //public int[] ToArray()
-        //{
-        //    if (_root == null) return Array.Empty<IComparable>();
+        public int[] ToArray()
+        {
+            if (_root == null) return Array.Empty<int>();
 
-        //    var array = new IComparable[Count];
-        //    ToArray(array, 0, _root);
-        //    return array;
-        //}
+            var array = new int[Count];
+            ToArray(array, 0, _root);
+            return array;
+        }
 
-        //private int ToArray(IComparable[] array, int arrayIndex, Node current)
-        //{
-        //    if (current.Left != null)
-        //    {
-        //        arrayIndex = ToArray(array, arrayIndex, current.Left);
-        //    }
+        private int ToArray(int[] array, int arrayIndex, Node current)
+        {
+            if (current.Left != null)
+            {
+                arrayIndex = ToArray(array, arrayIndex, current.Left);
+            }
 
-        //    array[arrayIndex++] = current.Value;
+            array[arrayIndex++] = current.Value;
 
-        //    if (current.Right != null)
-        //    {
-        //        arrayIndex = ToArray(array, arrayIndex, current.Right);
-        //    }
+            if (current.Right != null)
+            {
+                arrayIndex = ToArray(array, arrayIndex, current.Right);
+            }
 
-        //    return arrayIndex;
-        //}
+            return arrayIndex;
+        }
     }
 }

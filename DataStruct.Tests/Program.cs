@@ -1,4 +1,6 @@
-﻿namespace DataStruct.Tests
+﻿using System.Runtime.InteropServices;
+
+namespace DataStruct.Tests
 {
     public interface IPet
     {
@@ -164,8 +166,27 @@
         }
     }
 
-    class Collar
+    class Collar : IDisposable
     {
+        ~Collar()
+        {
+            Dispose(true);
+        }
+
+        public void Dispose()
+        {
+            Dispose(false);
+        }
+
+        private void Dispose(bool finalizer)
+        {
+            //....
+
+            if (!finalizer)
+            {
+                GC.SuppressFinalize(this);
+            }
+        }
     }
 
     class Dog : Pet
@@ -210,116 +231,41 @@
 
     internal class Program
     {
-        static long Fact(int num)
-        {
-            if (num > 1)
-            {
-                long res = num * Fact(num - 1);
-                return res;
-            }
-
-            return 1;
-        }
-
-        static long Fib(int num)
-        {
-            if (num > 1)
-            {
-                return Fib(num - 1) + Fib(num - 2);
-            }
-
-            return Math.Max(0, num);
-        }
-
-        static long Fib2(int num)
-        {
-            if (num <= 0) return 0;
-            if (num <= 2) return 1;
-
-            long previos = 1;
-            long current = 1;
-            long next;
-
-            do
-            {
-                next = previos + current;
-                previos = current;
-                current = next;
-
-                num--;
-            } while (num - 2 > 0);
-
-            return next;
-        }
-
-        static long Fib2_rec(int num)
-        {
-            if (num <= 0) return 0;
-            if (num <= 2) return 1;
-            return Fib2_rec(3, num, 1, 1);
-        }
-
-        static long Fib2_rec(in int pos, in int max, in long prev, in long current)
-        {
-            if (pos <= max)
-                return Fib2_rec(pos + 1, max, current, current + prev);
-            return current;
-        }
-
         static void Main(string[] args)
         {
-            // 6! = 1 * 2 * 3 * 4 * 5 * 6
+            using var collar = new Collar();
 
-            // 1 1 2 3 5 8 13
-            // 1 2 3 4 5 6 7
-            var res = Fib(1);
-            res = Fib2(11);
-            res = Fib2(17);
-            res = Fib2(23);
-            res = Fib2(29);
-            res = Fib2(43);
-            res = Fib2(59);
-            res = Fib2(79);
-            res = Fib2(89);
-            res = Fib2(90);
-            res = Fib2(92);
-            var res2 = Fib2_rec(92);
+            try
+            {
+                Cat barsik = new Cat("barsik");
+                Cat murka = new Cat("murka");
 
-            const int n = 1000;
-            var num = 1000;
+                ISomthing somthing = barsik;
+                somthing.Do();
 
-            long acc = num;
-            while (--num > 0) acc *= num;
+                barsik.Voice();
+                ILivePet livePet = barsik;
+                livePet.Voice();
 
-            long acc2 = Fact(1000);
+                IVoiced voiced = barsik;
+                voiced.Voice();
 
-            Console.WriteLine($"{acc} --- {acc2}");
+                Dog bobik = new Dog("bobik", new Collar());
 
+                Duck donald = new Duck("donald");
 
-            Cat barsik = new Cat("barsik");
-            Cat murka = new Cat("murka");
+                WoodDuck woodDuck = new WoodDuck();
+                PlasticCat plasticCat = new PlasticCat();
 
-            ISomthing somthing = barsik;
-            somthing.Do();
+                // Up-cast
+                FeedPets(barsik, murka, bobik, donald);
 
-            barsik.Voice();
-            ILivePet livePet = barsik;
-            livePet.Voice();
-
-            IVoiced voiced = barsik;
-            voiced.Voice();
-
-            Dog bobik = new Dog("bobik", new Collar());
-
-            Duck donald = new Duck("donald");
-
-            WoodDuck woodDuck = new WoodDuck();
-            PlasticCat plasticCat = new PlasticCat();
-
-            // Up-cast
-            FeedPets(barsik, murka, bobik, donald);
-
-            CountPets(barsik, murka, bobik, donald, woodDuck, plasticCat);
+                CountPets(barsik, murka, bobik, donald, woodDuck, plasticCat);
+            }
+            finally
+            {
+                collar.Dispose();
+            }
         }
 
         private static void CountPets(params IPet[] pets)

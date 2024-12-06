@@ -1,48 +1,104 @@
-﻿namespace DataStruct.Lib
+﻿using DataStruct.Abstractions;
+
+namespace DataStruct.Lib
 {
-    public class MyList
+    public class MyList : IMyList
     {
-        private object[] _items = new object[10];
+        private object?[] _items = new object[6];
 
         public int Count { get; private set; }
 
-        public object this[int i]
+        public object? this[int index]
         {
             get
             {
-                return _items[i];
+                if (index >= 0 && index >= Count) throw new IndexOutOfRangeException();
+                return _items[index];
             }
             set
             {
-                _items[i] = value;
+                if (index >= 0 && index >= Count) throw new IndexOutOfRangeException();
+                _items[index] = value;
             }
         }
 
-        public void Add(object item)
+        public void Add(object? item)
         {
-            if (_items.Length >= Count)
-            {
-                // Increase()
-            }
+            Increase();
 
             _items[Count] = item;
             Count++;
         }
 
-        public bool Contains(object item) { }
+        public void Insert(int index, object? item)
+        {
+            if (index >= Count || index < 0) throw new IndexOutOfRangeException();
 
-        public int IndexOf(object item) { }
+            Increase();
 
-        public void Insert(int index, object item) { }
+            for (int i = Count - 1; i >= index; i--)
+            {
+                _items[i + 1] = _items[i];
+            }
 
-        public void RemoveAt(int index) { }
+            _items[index] = item;
 
-        public void Remove(object item) { }
+            Count++;
+        }
 
-        public object[] ToArray() { }
+        public bool Contains(object item)
+        {
+            return IndexOf(item) >= 0;
+        }
+
+        public int IndexOf(object? item)
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                if (item == null && _items[i] == null) return i;
+                else if (item!.Equals(_items[i])) return i;
+            }
+            return -1;
+        }
+
+        public void Remove(object? item)
+        {
+            var index = IndexOf(item);
+            if (index >= 0) RemoveAt(index);
+        }
+
+        public void RemoveAt(int index)
+        {
+            if (index >= Count || index < 0) throw new IndexOutOfRangeException();
+
+            for (int i = index; i < Count; i++)
+            {
+                _items[i] = _items[i + 1];
+            }
+
+            _items[Count] = null;
+            Count--;
+        }
+
+        public object?[] ToArray()
+        {
+            var newArray = new object?[Count];
+
+            return newArray;
+        }
 
         private void Increase()
         {
+            if (_items.Length >= Count)
+            {
+                Array.Resize(ref _items, Count * 2);
+            }
+        }
+
+        public void Clear()
+        {
+            for (int i = 0; i < Count; i++) _items[i] = null;
+            Count = 0;
         }
     }
 }
