@@ -8,5 +8,10 @@ namespace DataStruct.Abstractions
 {
     public interface IMyList : IMyCollection
     {
+        int Count { get; }
+
+        void Add(object? id);
+
+        void Clear();
     }
 }

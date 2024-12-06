@@ -8,17 +8,17 @@ namespace DataStruct.Lib
 
         public int Count { get; private set; }
 
-        public object? this[int i]
+        public object? this[int index]
         {
             get
             {
-                if (i >= 0 && i >= Count) throw new IndexOutOfRangeException();
-                return _items[i];
+                if (index >= 0 && index >= Count) throw new IndexOutOfRangeException();
+                return _items[index];
             }
             set
             {
-                if (i >= 0 && i >= Count) throw new IndexOutOfRangeException();
-                _items[i] = value;
+                if (index >= 0 && index >= Count) throw new IndexOutOfRangeException();
+                _items[index] = value;
             }
         }
 
@@ -98,6 +98,7 @@ namespace DataStruct.Lib
         public void Clear()
         {
             for (int i = 0; i < Count; i++) _items[i] = null;
+            Count = 0;
         }
     }
 }
