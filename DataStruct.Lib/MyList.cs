@@ -2,13 +2,13 @@
 
 namespace DataStruct.Lib
 {
-    public class MyList<TItem> : IMyList<TItem>
+    public class MyList : IMyList
     {
-        private TItem?[] _items = new TItem[6];
+        private object?[] _items = new object[6];
 
         public int Count { get; private set; }
 
-        public TItem? this[int index]
+        public object? this[int index]
         {
             get
             {
@@ -22,7 +22,7 @@ namespace DataStruct.Lib
             }
         }
 
-        public void Add(TItem? item)
+        public void Add(object? item)
         {
             Increase();
 
@@ -30,7 +30,7 @@ namespace DataStruct.Lib
             Count++;
         }
 
-        public void Insert(int index, TItem? item)
+        public void Insert(int index, object? item)
         {
             if (index >= Count || index < 0) throw new IndexOutOfRangeException();
 
@@ -46,12 +46,12 @@ namespace DataStruct.Lib
             Count++;
         }
 
-        public bool Contains(TItem item)
+        public bool Contains(object item)
         {
             return IndexOf(item) >= 0;
         }
 
-        public int IndexOf(TItem? item)
+        public int IndexOf(object? item)
         {
             for (int i = 0; i < Count; i++)
             {
@@ -61,7 +61,7 @@ namespace DataStruct.Lib
             return -1;
         }
 
-        public void Remove(TItem? item)
+        public void Remove(object? item)
         {
             var index = IndexOf(item);
             if (index >= 0) RemoveAt(index);
@@ -76,13 +76,13 @@ namespace DataStruct.Lib
                 _items[i] = _items[i + 1];
             }
 
-            _items[Count] = default;
+            _items[Count] = null;
             Count--;
         }
 
-        public TItem?[] ToArray()
+        public object?[] ToArray()
         {
-            var newArray = new TItem?[Count];
+            var newArray = new object?[Count];
 
             return newArray;
         }
@@ -97,7 +97,7 @@ namespace DataStruct.Lib
 
         public void Clear()
         {
-            for (int i = 0; i < Count; i++) _items[i] = default;
+            for (int i = 0; i < Count; i++) _items[i] = null;
             Count = 0;
         }
     }
