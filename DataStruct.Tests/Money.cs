@@ -1,6 +1,6 @@
 ﻿namespace DataStruct.Tests
 {
-    readonly struct Money
+    readonly struct Money : IComparable<Money>, IComparable<decimal>
     {
         private readonly int _notes;
         private readonly byte _coins;
@@ -14,6 +14,16 @@
         public Money Add(Money money)
         {
             return new Money(this._notes + money._notes, (byte)(this._coins + money._coins));
+        }
+
+        public int CompareTo(Money other)
+        {
+            return (_notes * 100 + _coins) - (other._notes * 100 + other._coins);
+        }
+
+        public int CompareTo(decimal other)
+        {
+            throw new NotImplementedException();
         }
 
         public static Money operator +(Money money, Money other)

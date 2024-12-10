@@ -46,7 +46,7 @@ namespace DataStruct.Lib
             Count++;
         }
 
-        public bool Contains(T item)
+        public bool Contains(T? item)
         {
             return IndexOf(item) >= 0;
         }
@@ -89,7 +89,7 @@ namespace DataStruct.Lib
 
         private void Increase()
         {
-            if (_items.Length >= Count)
+            if (Count >= _items.Length)
             {
                 Array.Resize(ref _items, Count * 2);
             }

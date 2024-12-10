@@ -1,15 +1,15 @@
 ﻿namespace DataStruct.Lib
 {
-    public partial class BinTree
+    public partial class BinTree<T>
     {
         private class Node
         {
             public Node? Left { get; set; }
             public Node? Right { get; set; }
 
-            public int Value { get; init; }
+            public T Value { get; init; }
 
-            public Node(int value)
+            public Node(T value)
             {
                 Value = value;
             }

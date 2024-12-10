@@ -9,5 +9,9 @@ namespace DataStruct.Abstractions
     public interface IMyList<T> : IMyCollection<T>
     {
         T? this[int index] { get; set; }
+
+        int IndexOf(T? item);
+
+        void RemoveAt(int index);
     }
 }

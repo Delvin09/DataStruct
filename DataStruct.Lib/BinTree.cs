@@ -1,13 +1,25 @@
-﻿namespace DataStruct.Lib
+﻿using DataStruct.Abstractions;
+using System;
+
+namespace DataStruct.Lib
 {
-    public partial class BinTree
+    public partial class BinTree<T> : IMyCollection<T>
+        where T : IComparable<T>
     {
         private Node? _root;
+        //private readonly IComparer<T> _comparer;
 
         public int Count { get; private set; }
 
-        public void Add(int item)
+        //public BinTree(IComparer<T> comparer)
+        //{
+        //    this._comparer = comparer;
+        //}
+
+        public void Add(T? item)
         {
+            if (item == null) throw new ArgumentNullException(nameof(item));
+
             if (_root == null)
             {
                 _root = CreateNode(item);
@@ -18,7 +30,7 @@
             }
         }
 
-        private void Add(Node current, int item)
+        private void Add(Node current, T item)
         {
             if (item.CompareTo(current.Value) < 0)
             {
@@ -44,7 +56,7 @@
             }
         }
 
-        private Node CreateNode(int item, Node? left = null, Node? right = null)
+        private Node CreateNode(T item, Node? left = null, Node? right = null)
         {
             Count++;
             return new Node(item)
@@ -54,12 +66,12 @@
             };
         }
 
-        public bool Contains(int item)
+        public bool Contains(T? item)
         {
-            return _root != null && Contains(_root, item);
+            return _root != null && item != null && Contains(_root, item);
         }
 
-        private bool Contains(Node current, IComparable item)
+        private bool Contains(Node current, T item)
         {
             return item.CompareTo(current.Value) switch
             {
@@ -69,16 +81,16 @@
             };
         }
 
-        public int[] ToArray()
+        public T[] ToArray()
         {
-            if (_root == null) return Array.Empty<int>();
+            if (_root == null) return Array.Empty<T>();
 
-            var array = new int[Count];
+            var array = new T[Count];
             ToArray(array, 0, _root);
             return array;
         }
 
-        private int ToArray(int[] array, int arrayIndex, Node current)
+        private int ToArray(T[] array, int arrayIndex, Node current)
         {
             if (current.Left != null)
             {
@@ -93,6 +105,12 @@
             }
 
             return arrayIndex;
+        }
+
+        public void Clear()
+        {
+            _root = null;
+            Count = 0;
         }
     }
 }

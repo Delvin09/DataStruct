@@ -7,5 +7,9 @@
         void Add(T? id);
 
         void Clear();
+
+        T?[] ToArray();
+
+        bool Contains(T? item);
     }
 }

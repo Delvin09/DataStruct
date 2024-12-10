@@ -1,361 +1,247 @@
 ﻿using DataStruct.Lib;
-using System.Collections;
-using System.Runtime.InteropServices;
 
 namespace DataStruct.Tests
 {
-    public interface IPet
+    public class TestInfo
     {
-        string Name { get; }
+        public string Name { get; init; }
 
-        int Age { get; }
-
-        double Weight { get; }
+        public Func<bool> Method { get; init; }
     }
 
-    public interface ILivePet : IPet
+    abstract class TestGroup
     {
-        void Sleep();
+        public abstract string Title { get; }
 
-        void Eat();
-
-        void Voice();
-    }
-
-    public interface IFlyable
-    {
-        void Fly();
-    }
-
-    public interface IVoiced
-    {
-        void Voice();
-    }
-
-    public interface ISomthing
-    {
-        void Do();
-    }
-
-    class WoodDuck : IPet, IVoiced
-    {
-        public string Name => "Mock Duck";
-
-        public int Age { get; set; }
-
-        public double Weight => 2.0;
-
-        public void Voice()
+        protected void ShowTestResult(string testName, bool isSuccess)
         {
-            Console.WriteLine("KraaaaKraaa");
-        }
-    }
+            Console.Write($"{testName}:\t\t");
 
-    class PlasticCat : IPet
-    {
-        public string Name => "Plastic Cat";
+            Console.BackgroundColor = isSuccess ? ConsoleColor.Green : ConsoleColor.Red;
+            Console.ForegroundColor = ConsoleColor.Black;
+            var result = isSuccess ? "SUCCESS" : "FAILD";
+            Console.WriteLine(result);
 
-        public int Age { get; set; }
-
-        public double Weight => 1.0;
-    }
-
-    internal class Piano : IVoiced
-    {
-        public void Voice()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    abstract class Pet : ILivePet, IVoiced, ISomthing
-    {
-        protected int _id = 0;
-
-        public string Name { get; }
-
-        public int Age { get; private set; }
-
-        public double Weight { get; private set; }
-
-        public Pet(string name)
-        {
-            Name = name;
+            Console.ResetColor();
         }
 
-        public Pet(string name, int age, double weight)
+        public void Start()
         {
-            Name = name;
-            Age = age;
-            Weight = weight;
-        }
+            ShowTestGroupTitle();
 
-        public virtual void Sleep()
-        {
-            Console.WriteLine($"{Name} is sleeping.");
-        }
-
-        public void Eat()
-        {
-            Console.WriteLine($"{Name} is eating.");
-        }
-
-        void IVoiced.Voice()
-        {
-            throw new NotImplementedException();
-        }
-
-        public abstract void Voice();
-
-        void ISomthing.Do()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    class Duck : Pet, IFlyable
-    {
-        public Duck(string name) : base(name)
-        {
-        }
-
-        public void Fly()
-        {
-            Console.WriteLine("Duck is flying!");
-        }
-
-        public override void Voice()
-        {
-            Console.WriteLine("KraKra");
-        }
-    }
-
-    class Rabbit : Pet
-    {
-        public Rabbit(string name) : base(name)
-        {
-        }
-
-        public override void Voice()
-        {
-            Console.WriteLine($"{Name}: Frrrfrr!");
-        }
-    }
-
-    class Cat : Pet
-    {
-        private double _value = 0;
-
-        public Cat(string name)
-            : this(name, 0, 5.0)
-        {
-            //...
-        }
-
-        public Cat(string name, int age, double weight)
-            : base(name, age, weight)
-        {
-            //..2
-        }
-
-        public void CatchMouse()
-        {
-        }
-
-        public override void Voice()
-        {
-            Console.WriteLine($"{Name}: Mew!");
-        }
-    }
-
-    class Collar : IDisposable
-    {
-        ~Collar()
-        {
-            Dispose(true);
-        }
-
-        public void Dispose()
-        {
-            Dispose(false);
-        }
-
-        private void Dispose(bool finalizer)
-        {
-            //....
-
-            if (!finalizer)
+            foreach (var test in GetTestList())
             {
-                GC.SuppressFinalize(this);
+                var isSuccess = test.Method();
+                ShowTestResult(test.Name, isSuccess);
             }
+
+        }
+
+        protected abstract void RunTests();
+
+        protected abstract TestInfo[] GetTestList();
+
+        protected void ShowTestGroupTitle()
+        {
+            Console.BackgroundColor = ConsoleColor.Magenta;
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine($"-{Title}");
+
+            Console.ResetColor();
         }
     }
 
-    class Dog : Pet
+    class ListTests : TestGroup
     {
-        public Collar Collar { get; }
+        public override string Title => nameof(ListTests);
 
-        public Dog(string name, Collar collar)
-            : this(name, collar, 7.0, 0)
+        public bool AddElementsToListTest()
         {
+            // Arrange
+            var list = new MyList<int>();
+
+            // Act
+            list.Add(1);
+
+            // Assert
+            return list.Count == 1 && list[0] == 1;
         }
 
-        public Dog(string name, Collar collar, double weight, int age)
-            : base(name, age, weight)
+        public bool RemoveElementsTest()
         {
-            Collar = collar;
+            // Arrange
+            var list = new MyList<int>();
+            list.Add(1);
+
+            // Act
+            list.Remove(1);
+
+            // Assert
+            return list.Count == 0;
         }
 
-        public void Guard()
+        protected override TestInfo[] GetTestList()
         {
-
+            return new TestInfo[]
+            {
+                new TestInfo { Name = nameof(AddElementsToListTest), Method = AddElementsToListTest },
+                new TestInfo { Name = nameof(RemoveElementsTest), Method = RemoveElementsTest }
+            };
         }
 
-        public override void Voice()
+        protected override void RunTests()
         {
-            Console.WriteLine($"{Name}: Guf!");
+            AddElementsToListTest();
+            RemoveElementsTest();
         }
     }
 
-    class Cage<T> : ICage<T> where T : IPet
+    class LinkedListTests : TestGroup
     {
-        private T? _pet = default;
+        public override string Title => nameof(LinkedListTests);
 
-        public Cage()
+        public bool AddElementsToLinkedListTest()
         {
+            // Arrange
+            var list = new MyLinkedList<int>();
+
+            // Act
+            list.Add(1);
+
+            // Assert
+            return list.Count == 1 && list.First == 1;
         }
 
-        public Cage(T pet)
+        public bool RemoveElementsTest()
         {
-            _pet = pet;
+            // Arrange
+            var list = new MyLinkedList<int>();
+            list.Add(1);
+
+            // Act
+            list.Remove(1);
+
+            // Assert
+            return list.Count == 0 && list.First == list.Last && list.Last == default;
         }
 
-        public void InCage(T pet)
+        protected override TestInfo[] GetTestList()
         {
-            _pet = pet;
+            return new TestInfo[]
+            {
+                new TestInfo { Name = nameof(AddElementsToLinkedListTest), Method = AddElementsToLinkedListTest },
+                new TestInfo { Name = nameof(RemoveElementsTest), Method = RemoveElementsTest }
+            };
         }
 
-        public T? OutCage()
+        protected override void RunTests()
         {
-            _pet = default;
-            return _pet;
+            AddElementsToLinkedListTest();
+            RemoveElementsTest();
         }
     }
 
-    interface ICage<T> : IInCage<T>, IOutCage<T>
-        where T : IPet
-    {
-    }
+    //class BinTreeTests : TestGroup
+    //{
+    //    public override string Title => nameof(BinTreeTests);
 
-    interface IInCage<in T> where T: IPet // КОНТРАВАРІАНТНІСТЬ
-    {
-        void InCage(T pet);
-    }
+    //    protected override void RunTests()
+    //    {
+    //        AddElementsToTreeTest();
+    //        ToArrayTest();
+    //    }
 
-    interface IOutCage<out T> where T : IPet // КОВАРИАНТНІСТЬ
-    {
-        T? OutCage();
-    }
+    //    public void AddElementsToTreeTest()
+    //    {
 
-    readonly struct Card
-    {
-        public readonly int value;
-        public readonly int suit;
+    //    }
 
-        public int SomeCoolProp { get; init; }
+    //    public void ToArrayTest()
+    //    {
 
-        public Card(int value, int suit)
-        {
-            this.value = value;
-            this.suit = suit;
-        }
-    }
+    //    }
+    //}
 
     internal class Program
     {
-        static T Create<T>() where T : IPet, new()
-        {
-            return new T();
-        }
-
-
         static void Main(string[] args)
         {
-            using var collar = new Collar();
-
-            try
+            TestGroup[] testGroups = new TestGroup[]
             {
-                IPet c = Create<>();
+                new ListTests(),
+                new LinkedListTests(),
+                //new BinTreeTests(),
+            };
 
-
-                IPet pet = CreateDog(new int[] { 1, 2,3});
-                Pet pet2 = CreateDog(new Dictionary<int, string> { });
-
-                Cat barsik = new Cat("barsik");
-                Cat murka = new Cat("murka");
-
-                IOutCage<Cat> cage = new Cage<Cat>(murka);
-                IOutCage<IPet> cage1 = cage;
-                IPet? pp = cage1.OutCage();
-
-                IInCage<IPet> cage2 = new Cage<IPet>(murka);
-                IInCage<Dog> cage3 = cage2;
-                cage3.InCage()
-
-                ISomthing somthing = barsik;
-                somthing.Do();
-
-                barsik.Voice();
-                ILivePet livePet = barsik;
-                livePet.Voice();
-
-                IVoiced voiced = barsik;
-                voiced.Voice();
-
-                Dog bobik = new Dog("bobik", new Collar());
-
-                var dogCage = new Cage<Dog>(bobik);
-
-                Duck donald = new Duck("donald");
-
-                WoodDuck woodDuck = new WoodDuck();
-                PlasticCat plasticCat = new PlasticCat();
-
-                // Up-cast
-                FeedPets(barsik, murka, bobik, donald);
-
-                CountPets(barsik, murka, bobik, donald, woodDuck, plasticCat);
-            }
-            finally
+            Action someSimple = null;
+            foreach (var testGroup in testGroups)
             {
-                collar.Dispose();
+                testGroup.Start();
             }
         }
 
-        private static void CountPets(params IPet[] pets)
+        static void Tests()
         {
-            foreach (IPet pet in pets)
-            {
-                Console.WriteLine(pet.Name);
-            }
-        }
+            Console.WriteLine("List");
+            var list = new MyList<int>();
+            list.Add(1);
+            list.Add(2);
+            list.Add(3);
+            list.Add(4);
+            list.Add(5);
+            list.Insert(1, 0);
+            int countKosharr = list.Count;
+            list.RemoveAt(4);
+            list.Remove(3);
+            var toArr = list.ToArray();
 
-        static void FeedPets(params ILivePet[] pets)
-        {
-            foreach (var pet in pets)
-            {
-                pet.Eat();
+            Console.WriteLine("LinkedList");
 
-                if (pet is IVoiced voiced)
-                {
-                    voiced.Voice();
-                }
+            var linkedList = new MyLinkedList<int>();
+            linkedList.Add(1);
+            linkedList.Add(2);
+            linkedList.Add(3);
+            linkedList.Add(4);
+            linkedList.Insert(1, 0);
+            linkedList.Add(2);
+            linkedList.AddFirst(2);
+            bool conkoshLinkedList = linkedList.Contains(3);
+            int count = linkedList.Count;
+            object koshLinkedListfirst = linkedList.First;
+            object koshLinkedListlast = linkedList.Last;
+            var toArrLinkedList = linkedList.ToArray();
+            linkedList.Clear();
 
-                if (pet is IFlyable flyable)
-                {
-                    flyable.Fly();
-                }
-            }
+            Console.WriteLine("DoublylinkeList");
+
+            var doubleLinkedList = new MyDoubleLinkedList<int>();
+            doubleLinkedList.Add(1);
+            doubleLinkedList.Add(2);
+            doubleLinkedList.Add(3);
+            doubleLinkedList.Add(4);
+            doubleLinkedList.Add(5);
+            doubleLinkedList.Insert(1, 0);
+            doubleLinkedList.Add(2);
+            doubleLinkedList.AddFirst(2);
+            bool contkoshDoublyLinkedList = doubleLinkedList.Contains(3);
+            object koshDoublyLinkedListfirsy = doubleLinkedList.First;
+            object koshDoublyLinkedListLast = doubleLinkedList.Last;
+            var toArrkoshDoublyLinkedList = doubleLinkedList.ToArray();
+            doubleLinkedList.Clear();
+
+            Console.WriteLine("BinaryTreeNodeKosh");
+
+            var binaryTree = new BinTree<int>();
+            binaryTree.Add(1);
+            binaryTree.Add(4);
+            binaryTree.Add(5);
+            binaryTree.Add(6);
+            binaryTree.Add(2);
+            bool contBinaryTreeNodeKosh = binaryTree.Contains(4);
+            var toArrkoshBinaryTreeNodeKosh = binaryTree.ToArray();
+            int root = binaryTree.Count;
+            binaryTree.Clear();
+            Console.WriteLine("");
         }
     }
 }
