@@ -2,6 +2,58 @@
 
 namespace DataStruct.Lib
 {
+    public class ObservableMyList<T> : IMyList<T>
+    {
+        private readonly MyList<T> myList;
+
+        public ObservableMyList(MyList<T> myList)
+        {
+            this.myList = myList;
+        }
+
+        public T? this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public int Count => throw new NotImplementedException();
+
+        public void Add(T? id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Clear()
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Contains(T? item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int IndexOf(T? item)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RemoveAt(int index)
+        {
+            throw new NotImplementedException();
+        }
+
+        public T?[] ToArray() => myList.ToArray();
+
+
+        public event EventHandler<ListEventArgs> ListChanged;
+        public event EventHandler<ListEventArgs> RemoveistChanged;
+        public event EventHandler<ListEventArgs> ClearistChanged;
+    }
+
+    public class ListEventArgs : EventArgs
+    {
+        public
+    }
+
+
     public class MyList<T> : IMyList<T>
     {
         private T?[] _items = new T[6];

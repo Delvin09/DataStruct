@@ -2,11 +2,28 @@
 
 namespace DataStruct.Tests
 {
+    interface ISomeCoolInter
+    {
+        event Action OnClick;
+    }
+
     public class TestInfo
     {
         public string Name { get; init; }
 
         public Func<bool> Method { get; init; }
+
+        private void Cicked()
+        {
+            //....
+            OnClick?.Invoke(this, EventArgs.Empty);
+        }
+
+        public event EventHandler? OnClick
+        {
+            add { OnClick += value; }
+            remove { OnClick -= value; }
+        }
     }
 
     abstract class TestGroup
@@ -166,6 +183,26 @@ namespace DataStruct.Tests
     {
         static void Main(string[] args)
         {
+            var t = new TestInfo();
+
+            t.OnClick += T_OnClick;
+
+            List<Action> actions = new List<Action>();
+            for (int x = 0; x < 10; x++)
+            {
+                var y = x;
+                var action = () => Console.WriteLine(y);
+                actions.Add(action);
+            }
+
+            foreach (var action in actions)
+            {
+                action();
+            }
+
+            actions.Clear();
+            actions = null;
+
             TestGroup[] testGroups = new TestGroup[]
             {
                 new ListTests(),
@@ -178,6 +215,11 @@ namespace DataStruct.Tests
             {
                 testGroup.Start();
             }
+        }
+
+        private static void T_OnClick(object? sender, EventArgs e)
+        {
+            t.OnClick -= T_OnClick;
         }
 
         static void Tests()
