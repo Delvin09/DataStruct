@@ -16,7 +16,7 @@ namespace DataStruct.Tests
         private void Cicked()
         {
             //....
-            OnClick?.Invoke(this, EventArgs.Empty);
+            OnClick? .Invoke(this, EventArgs.Empty);
         }
 
         public event EventHandler? OnClick
