@@ -1,36 +1,67 @@
-﻿using DataStruct.Lib;
+﻿using DataStruct.Abstractions;
+using DataStruct.Lib;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace DataStruct.Tests
 {
-    interface ISomeCoolInter
-    {
-        event Action OnClick;
-    }
-
     public class TestInfo
     {
         public string Name { get; init; }
 
         public Func<bool> Method { get; init; }
+    }
 
-        private void Cicked()
+
+    //interface IOnTestStart
+    //{
+    //    void Subscribe(IOnTestStartHandler handler);
+    //    void Unsubscribe(IOnTestStartHandler handler);
+    //}
+
+    //interface IOnTestEnd
+    //{
+    //    void Subscribe(IOnTestEndHandler handler);
+    //    void Unsubscribe(IOnTestEndHandler handler);
+    //}
+
+    //interface IOnTestStartHandler
+    //{
+    //    void Handle(string testName, string testGroupName);
+    //}
+
+    //interface IOnTestEndHandler
+    //{
+    //    void Handle(string testName, string testGroupName, bool isSuccess);
+    //}
+
+
+    interface ITestRenderer
+    {
+        void ShowTestGroupTitle(string title);
+    }
+
+    class LogTestToDatabase
+    {
+        public void Handle(object? sender, OnTestStartEventArgs args)
         {
-            //....
-            OnClick?.Invoke(this, EventArgs.Empty);
+            Debug.WriteLine($"===>>> test run - {args.TestName}");
         }
 
-        public event EventHandler? OnClick
+        public void Handle(object? sender, OnTestEndEventArgs args)
         {
-            add { OnClick += value; }
-            remove { OnClick -= value; }
+            Debug.WriteLine($"===>>> test end - {args.TestName} with `{args.IsSuccess}`");
         }
     }
 
-    abstract class TestGroup
+    class ConsoleTestRenderer : ITestRenderer
     {
-        public abstract string Title { get; }
+        public void Handle(object? sender, OnTestEndEventArgs args)
+        {
+            ShowTestResult(args.TestName, args.IsSuccess);
+        }
 
-        protected void ShowTestResult(string testName, bool isSuccess)
+        private void ShowTestResult(string testName, bool isSuccess)
         {
             Console.Write($"{testName}:\t\t");
 
@@ -42,14 +73,57 @@ namespace DataStruct.Tests
             Console.ResetColor();
         }
 
-        public void Start()
+        public void ShowTestGroupTitle(string title)
         {
-            ShowTestGroupTitle();
+            Console.BackgroundColor = ConsoleColor.Magenta;
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            Console.WriteLine($"-{title}");
+
+            Console.ResetColor();
+        }
+    }
+
+    class OnTestStartEventArgs : EventArgs
+    {
+        public string TestName { get; init; }
+
+        public string TestGroupName { get; init; }
+    }
+
+    class OnTestEndEventArgs : OnTestStartEventArgs
+    {
+        public bool IsSuccess { get; init; }
+    }
+
+    abstract class TestGroup
+    {
+        private readonly ITestRenderer _testRenderer;
+
+        public event EventHandler<OnTestStartEventArgs>? OnTestStart;
+        public event EventHandler<OnTestEndEventArgs>? OnTestEnd;
+
+        public abstract string Title { get; }
+
+        protected TestGroup(ITestRenderer testRenderer)
+        {
+            this._testRenderer = testRenderer;
+        }
+
+        public void Start(Func<string, string, bool>? filter = null)
+        {
+            _testRenderer.ShowTestGroupTitle(Title);
 
             foreach (var test in GetTestList())
             {
-                var isSuccess = test.Method();
-                ShowTestResult(test.Name, isSuccess);
+                if (filter == null || filter(test.Name, Title))
+                {
+                    if (OnTestStart != null)
+                        OnTestStart(this, new OnTestStartEventArgs { TestName = test.Name, TestGroupName = Title });
+
+                    var isSuccess = test.Method();
+
+                    OnTestEnd?.Invoke(this, new OnTestEndEventArgs { TestName = test.Name, TestGroupName = Title, IsSuccess = isSuccess });
+                }
             }
 
         }
@@ -57,19 +131,15 @@ namespace DataStruct.Tests
         protected abstract void RunTests();
 
         protected abstract TestInfo[] GetTestList();
-
-        protected void ShowTestGroupTitle()
-        {
-            Console.BackgroundColor = ConsoleColor.Magenta;
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine($"-{Title}");
-
-            Console.ResetColor();
-        }
     }
 
     class ListTests : TestGroup
     {
+        public ListTests(ITestRenderer testRenderer)
+            : base(testRenderer)
+        {
+        }
+
         public override string Title => nameof(ListTests);
 
         public bool AddElementsToListTest()
@@ -99,11 +169,11 @@ namespace DataStruct.Tests
 
         protected override TestInfo[] GetTestList()
         {
-            return new TestInfo[]
-            {
+            return
+            [
                 new TestInfo { Name = nameof(AddElementsToListTest), Method = AddElementsToListTest },
                 new TestInfo { Name = nameof(RemoveElementsTest), Method = RemoveElementsTest }
-            };
+            ];
         }
 
         protected override void RunTests()
@@ -115,6 +185,11 @@ namespace DataStruct.Tests
 
     class LinkedListTests : TestGroup
     {
+        public LinkedListTests(ITestRenderer testRenderer)
+            : base(testRenderer)
+        {
+        }
+
         public override string Title => nameof(LinkedListTests);
 
         public bool AddElementsToLinkedListTest()
@@ -144,11 +219,11 @@ namespace DataStruct.Tests
 
         protected override TestInfo[] GetTestList()
         {
-            return new TestInfo[]
-            {
+            return
+            [
                 new TestInfo { Name = nameof(AddElementsToLinkedListTest), Method = AddElementsToLinkedListTest },
                 new TestInfo { Name = nameof(RemoveElementsTest), Method = RemoveElementsTest }
-            };
+            ];
         }
 
         protected override void RunTests()
@@ -181,45 +256,61 @@ namespace DataStruct.Tests
 
     internal class Program
     {
-        static void Main(string[] args)
+        static void Foreach(IIterable<int> my)
         {
-            var t = new TestInfo();
-
-            t.OnClick += T_OnClick;
-
-            List<Action> actions = new List<Action>();
-            for (int x = 0; x < 10; x++)
+            IIterator<int> iterator = my.GetIterator();
+            while (iterator.MoveNext())
             {
-                var y = x;
-                var action = () => Console.WriteLine(y);
-                actions.Add(action);
-            }
-
-            foreach (var action in actions)
-            {
-                action();
-            }
-
-            actions.Clear();
-            actions = null;
-
-            TestGroup[] testGroups = new TestGroup[]
-            {
-                new ListTests(),
-                new LinkedListTests(),
-                //new BinTreeTests(),
-            };
-
-            Action someSimple = null;
-            foreach (var testGroup in testGroups)
-            {
-                testGroup.Start();
+                var item = iterator.Current;
+                Console.WriteLine(item);
             }
         }
 
-        private static void T_OnClick(object? sender, EventArgs e)
+        static void Main(string[] args)
         {
-            t.OnClick -= T_OnClick;
+            var list = new MyList<int>();
+            var myList = new MyLinkedList<int>();
+
+            //var tree = new BinTree<int>();
+
+            Foreach(myList);
+            
+            Foreach(list);
+
+            //Foreach(tree);
+
+            //Console.WriteLine("Enter tests for run: ");
+            //var str = Console.ReadLine()?.Trim().Split(',') ?? Array.Empty<string>();
+
+            var renderer = new ConsoleTestRenderer();
+
+            TestGroup[] testGroups =
+            [
+                new ListTests(renderer),
+                new LinkedListTests(renderer),
+                //new BinTreeTests(),
+            ];
+
+            var logger = new LogTestToDatabase();
+
+            foreach (var testGroup in testGroups)
+            {
+                testGroup.OnTestEnd += renderer.Handle;
+                testGroup.OnTestStart += logger.Handle;
+                testGroup.OnTestEnd += logger.Handle;
+            }
+
+            foreach (var testGroup in testGroups)
+            {
+                testGroup.Start(/*(testName, _) => str.Contains(testName)*/);
+            }
+
+            foreach (var testGroup in testGroups)
+            {
+                testGroup.OnTestEnd -= renderer.Handle;
+                testGroup.OnTestStart -= logger.Handle;
+                testGroup.OnTestEnd -= logger.Handle;
+            }
         }
 
         static void Tests()

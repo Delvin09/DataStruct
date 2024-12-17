@@ -2,59 +2,70 @@
 
 namespace DataStruct.Lib
 {
-    public class ObservableMyList<T> : IMyList<T>
+    //public class ObservableMyList<T> : IMyList<T>
+    //{
+    //    private readonly MyList<T> myList;
+
+    //    public ObservableMyList(MyList<T> myList)
+    //    {
+    //        this.myList = myList;
+    //    }
+
+    //    public T? this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+    //    public int Count => throw new NotImplementedException();
+
+    //    public void Add(T? id)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public void Clear()
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public bool Contains(T? item)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public int IndexOf(T? item)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public void RemoveAt(int index)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public T?[] ToArray() => myList.ToArray();
+
+
+    //    public event EventHandler<ListEventArgs> ListChanged;
+    //    public event EventHandler<ListEventArgs> RemoveistChanged;
+    //    public event EventHandler<ListEventArgs> ClearistChanged;
+    //}
+
+    //public class ListEventArgs : EventArgs
+    //{
+    //    public
+    //}
+
+    public interface IIterator<out T>
     {
-        private readonly MyList<T> myList;
+        T Current { get; }
 
-        public ObservableMyList(MyList<T> myList)
-        {
-            this.myList = myList;
-        }
-
-        public T? this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-        public int Count => throw new NotImplementedException();
-
-        public void Add(T? id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Clear()
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Contains(T? item)
-        {
-            throw new NotImplementedException();
-        }
-
-        public int IndexOf(T? item)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void RemoveAt(int index)
-        {
-            throw new NotImplementedException();
-        }
-
-        public T?[] ToArray() => myList.ToArray();
-
-
-        public event EventHandler<ListEventArgs> ListChanged;
-        public event EventHandler<ListEventArgs> RemoveistChanged;
-        public event EventHandler<ListEventArgs> ClearistChanged;
+        bool MoveNext();
     }
 
-    public class ListEventArgs : EventArgs
+    public interface IIterable<out T>
     {
-        public
+        IIterator<T> GetIterator();
     }
 
-
-    public class MyList<T> : IMyList<T>
+    public class MyList<T> : IMyList<T>, IIterable<T>
     {
         private T?[] _items = new T[6];
 
@@ -152,5 +163,30 @@ namespace DataStruct.Lib
             for (int i = 0; i < Count; i++) _items[i] = default;
             Count = 0;
         }
+
+        public IIterator<T> GetIterator()
+        {
+            return new MyListIterator(this);
+        }
+
+        private class MyListIterator : IIterator<T>
+        {
+            private readonly MyList<T> _list;
+            private int _index = -1;
+
+            public T Current => _list[_index];
+
+            public MyListIterator(MyList<T> list)
+            {
+                this._list = list;
+            }
+
+            public bool MoveNext()
+            {
+                _index++;
+                return _index < _list.Count;
+            }
+        }
+
     }
 }

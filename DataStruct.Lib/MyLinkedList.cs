@@ -31,7 +31,7 @@ namespace DataStruct.Lib
         }
     }
 
-    public class MyLinkedList<T> : IMyCollection<T>
+    public class MyLinkedList<T> : IMyCollection<T>, IIterable<T>
     {
         protected readonly struct NodeToChange
         {
@@ -217,6 +217,30 @@ namespace DataStruct.Lib
             }
 
             return false;
+        }
+
+        public IIterator<T> GetIterator()
+        {
+            return new LinkedListIterator(FirstNode);
+        }
+
+        private class LinkedListIterator : IIterator<T>
+        {
+            private LinkedListNode _node;
+
+            public LinkedListIterator(LinkedListNode node)
+            {
+                this._node = node;
+            }
+
+            public T Current => _node.Data;
+
+            public bool MoveNext()
+            {
+                var next = _node.Next;
+                _node = next;
+                return next != null;
+            }
         }
     }
 }
