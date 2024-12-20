@@ -164,6 +164,11 @@ namespace DataStruct.Lib
             Count = 0;
         }
 
+        public void Shuffle()
+        {
+            new Random().Shuffle(_items);
+        }
+
         public IIterator<T> GetIterator()
         {
             return new MyListIterator(this);

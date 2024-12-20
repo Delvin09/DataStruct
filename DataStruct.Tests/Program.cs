@@ -254,28 +254,139 @@ namespace DataStruct.Tests
     //    }
     //}
 
+    class FilterIterator<T> : IIterator<T>
+    {
+        private readonly IIterator<T> _baseIterator;
+        private readonly Func<T, bool> _filter;
+
+        public T Current => _baseIterator.Current;
+
+        public FilterIterator(IIterator<T> baseIterator, Func<T, bool> filter)
+        {
+            this._baseIterator = baseIterator;
+            this._filter = filter;
+        }
+
+        public bool MoveNext()
+        {
+            start: var result = _baseIterator.MoveNext();
+            if (!result)
+            {
+                return false;
+            }
+
+            if (_filter(_baseIterator.Current))
+            {
+                return true;
+            }
+            else
+            {
+                goto start;
+            }
+        }
+    }
+
+    public class SkipWhileIterator<T> : IIterator<T>
+    {
+        private readonly IIterator<T> _baseIterator;
+        private readonly Func<T, bool> _filter;
+        private bool _skip = true;
+
+        public T Current => _baseIterator.Current;
+
+        public SkipWhileIterator(IIterator<T> baseIterator, Func<T, bool> filter)
+        {
+            this._baseIterator = baseIterator;
+            this._filter = filter;
+        }
+
+        public bool MoveNext()
+        {
+        start: var result = _baseIterator.MoveNext();
+            if (_skip)
+            {
+                if (!result)
+                {
+                    return false;
+                }
+
+                if (_filter(_baseIterator.Current))
+                {
+                    goto start;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            return result;
+        }
+    }
+
+    public static class Extensions
+    {
+        public static IIterator<T> Filter<T>(this IIterator<T> baseIter, Func<T, bool> filter)
+        {
+            return new FilterIterator<T>(baseIter, filter);
+        }
+
+        public static IIterator<T> SkipWhile<T>(this IIterator<T> baseIter, Func<T, bool> filter)
+        {
+            return new SkipWhileIterator<T>(baseIter, filter);
+        }
+    }
+
     internal class Program
     {
         static void Foreach(IIterable<int> my)
         {
-            IIterator<int> iterator = my.GetIterator();
-            while (iterator.MoveNext())
+            //IIterator<int> iterator = my.GetIterator();
+            //var filterIterator = new FilterIterator<int>(iterator, item => item % 2 == 0);
+            //var skipIterator = new SkipWhileIterator<int>(filterIterator, item => item <= 10);
+
+            //var skipIterator = new SkipWhileIterator<int>(new FilterIterator<int>(my.GetIterator(), item => item % 2 == 0), item => item <= 10);
+
+            var skipIterator = my.GetIterator() // IIterator
+                .Filter(item => item % 2 == 0)
+                .SkipWhile(item => item <= 10);
+
+            while (skipIterator.MoveNext())
             {
-                var item = iterator.Current;
+                var item = skipIterator.Current;
                 Console.WriteLine(item);
             }
         }
 
         static void Main(string[] args)
         {
-            var list = new MyList<int>();
+            var list = new MyLinkedList<int>();
+            list.Add(1);
+            list.Add(2);
+            list.Add(3);
+            
+            list.Add(5);
+            list.Add(6);
+            list.Add(14);
+            list.Add(7);
+            list.Add(4);
+            list.Add(8);
+            
+            list.Add(10);
+            list.Add(9);
+            list.Add(11);
+            
+            list.Add(13);
+            list.Add(12);
+
+            //list.Shuffle();
+
+            Foreach(list);
+
             var myList = new MyLinkedList<int>();
 
             //var tree = new BinTree<int>();
 
             Foreach(myList);
-            
-            Foreach(list);
 
             //Foreach(tree);
 
