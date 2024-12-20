@@ -1,5 +1,6 @@
 ﻿using DataStruct.Abstractions;
 using DataStruct.Lib;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -254,14 +255,16 @@ namespace DataStruct.Tests
     //    }
     //}
 
-    class FilterIterator<T> : IIterator<T>
+    public class FilterIterator<T> : IEnumerator<T>
     {
-        private readonly IIterator<T> _baseIterator;
+        private readonly IEnumerator<T> _baseIterator;
         private readonly Func<T, bool> _filter;
 
         public T Current => _baseIterator.Current;
 
-        public FilterIterator(IIterator<T> baseIterator, Func<T, bool> filter)
+        object IEnumerator.Current => Current;
+
+        public FilterIterator(IEnumerator<T> baseIterator, Func<T, bool> filter)
         {
             this._baseIterator = baseIterator;
             this._filter = filter;
@@ -269,7 +272,7 @@ namespace DataStruct.Tests
 
         public bool MoveNext()
         {
-            start: var result = _baseIterator.MoveNext();
+        start: var result = _baseIterator.MoveNext();
             if (!result)
             {
                 return false;
@@ -284,17 +287,27 @@ namespace DataStruct.Tests
                 goto start;
             }
         }
+
+        public void Reset()
+        {
+        }
+
+        public void Dispose()
+        {
+        }
     }
 
-    public class SkipWhileIterator<T> : IIterator<T>
+    public class SkipWhileIterator<T> : IEnumerator<T>
     {
-        private readonly IIterator<T> _baseIterator;
+        private readonly IEnumerator<T> _baseIterator;
         private readonly Func<T, bool> _filter;
         private bool _skip = true;
 
         public T Current => _baseIterator.Current;
 
-        public SkipWhileIterator(IIterator<T> baseIterator, Func<T, bool> filter)
+        object IEnumerator.Current => Current;
+
+        public SkipWhileIterator(IEnumerator<T> baseIterator, Func<T, bool> filter)
         {
             this._baseIterator = baseIterator;
             this._filter = filter;
@@ -321,24 +334,102 @@ namespace DataStruct.Tests
             }
             return result;
         }
+
+        public void Reset()
+        {
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
+    public class FilterEnumerable<T> : IEnumerable<T>
+    {
+        private readonly IEnumerable<T> collection;
+        private readonly Func<T, bool> filter;
+
+        public FilterEnumerable(IEnumerable<T> collection, Func<T, bool> filter)
+        {
+            this.collection = collection;
+            this.filter = filter;
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return new FilterIterator<T>(collection.GetEnumerator(), filter);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+    }
+
+    public class SkipWhileEnumerable<T> : IEnumerable<T>
+    {
+        private readonly IEnumerable<T> collection;
+        private readonly Func<T, bool> filter;
+
+        public SkipWhileEnumerable(IEnumerable<T> collection, Func<T, bool> filter)
+        {
+            this.collection = collection;
+            this.filter = filter;
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return new SkipWhileIterator<T>(collection.GetEnumerator(), filter);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
     }
 
     public static class Extensions
     {
-        public static IIterator<T> Filter<T>(this IIterator<T> baseIter, Func<T, bool> filter)
+        public static IEnumerable<T> Filter<T>(this IEnumerable<T> collection, Func<T, bool> filter)
         {
-            return new FilterIterator<T>(baseIter, filter);
+            return new FilterEnumerable<T>(collection, filter);
         }
 
-        public static IIterator<T> SkipWhile<T>(this IIterator<T> baseIter, Func<T, bool> filter)
+        public static IEnumerable<T> Filter_v2<T>(this IEnumerable<T> collection, Func<T, bool> filter)
         {
-            return new SkipWhileIterator<T>(baseIter, filter);
+            foreach (var item in collection)
+            {
+                if (filter(item))
+                    yield return item;
+            }
+        }
+
+        public static IEnumerable<T> SkipWhile<T>(this IEnumerable<T> collection, Func<T, bool> filter)
+        {
+            return new SkipWhileEnumerable<T>(collection, filter);
         }
     }
 
     internal class Program
     {
-        static void Foreach(IIterable<int> my)
+        static IEnumerable<int> M(bool f)
+        {
+            if (f)
+            {
+                yield return 1;
+                yield return 2;
+                yield return 3;
+                yield return 4;
+            }
+            else
+            {
+                yield return 10;
+                yield return 100;
+                yield return 1000;
+            }
+        }
+
+        static void Foreach(IEnumerable<int> my)
         {
             //IIterator<int> iterator = my.GetIterator();
             //var filterIterator = new FilterIterator<int>(iterator, item => item % 2 == 0);
@@ -346,39 +437,46 @@ namespace DataStruct.Tests
 
             //var skipIterator = new SkipWhileIterator<int>(new FilterIterator<int>(my.GetIterator(), item => item % 2 == 0), item => item <= 10);
 
-            var skipIterator = my.GetIterator() // IIterator
+            var query = my
                 .Filter(item => item % 2 == 0)
                 .SkipWhile(item => item <= 10);
 
-            while (skipIterator.MoveNext())
+            foreach (var item in query)
             {
-                var item = skipIterator.Current;
                 Console.WriteLine(item);
             }
         }
 
         static void Main(string[] args)
         {
-            var list = new MyLinkedList<int>();
-            list.Add(1);
-            list.Add(2);
-            list.Add(3);
-            
-            list.Add(5);
-            list.Add(6);
-            list.Add(14);
-            list.Add(7);
-            list.Add(4);
-            list.Add(8);
-            
-            list.Add(10);
-            list.Add(9);
-            list.Add(11);
-            
-            list.Add(13);
-            list.Add(12);
+            var list = new MyLinkedList<int>
+            {
+                1,
+                2,
+                3,
+                5,
+                6,
+                14,
+                7,
+                4,
+                8,
+                10,
+                9,
+                11,
+                13,
+                12
+            };
 
-            //list.Shuffle();
+            var query = list
+                .Filter(item => item % 2 == 0)
+                .SkipWhile(item => item <= 10);
+
+            list.Insert(100, 0);
+
+            foreach (var item in M(true))
+            {
+                Console.WriteLine(item);
+            }
 
             Foreach(list);
 

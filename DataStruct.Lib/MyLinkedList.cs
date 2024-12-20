@@ -1,4 +1,5 @@
 ﻿using DataStruct.Abstractions;
+using System.Collections;
 
 namespace DataStruct.Lib
 {
@@ -31,7 +32,7 @@ namespace DataStruct.Lib
         }
     }
 
-    public class MyLinkedList<T> : IMyCollection<T>, IIterable<T>
+    public class MyLinkedList<T> : IMyCollection<T>, IEnumerable<T>
     {
         protected readonly struct NodeToChange
         {
@@ -219,27 +220,44 @@ namespace DataStruct.Lib
             return false;
         }
 
-        public IIterator<T> GetIterator()
+        public IEnumerator<T> GetEnumerator()
         {
             return new LinkedListIterator(FirstNode);
         }
 
-        private class LinkedListIterator : IIterator<T>
+        IEnumerator IEnumerable.GetEnumerator()
         {
+            return GetEnumerator();
+        }
+
+        private class LinkedListIterator : IEnumerator<T>
+        {
+            private readonly LinkedListNode? _firstNode;
             private LinkedListNode _node;
 
             public LinkedListIterator(LinkedListNode node)
             {
-                this._node = node;
+                _firstNode = _node = node;
             }
 
             public T Current => _node.Data;
 
+            object IEnumerator.Current => Current;
+
             public bool MoveNext()
             {
-                var next = _node.Next;
+                var next = _node?.Next;
                 _node = next;
                 return next != null;
+            }
+
+            public void Reset()
+            {
+                _node = _firstNode;
+            }
+
+            public void Dispose()
+            {
             }
         }
     }

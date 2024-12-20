@@ -1,4 +1,5 @@
 ﻿using DataStruct.Abstractions;
+using System.Collections;
 
 namespace DataStruct.Lib
 {
@@ -53,19 +54,7 @@ namespace DataStruct.Lib
     //    public
     //}
 
-    public interface IIterator<out T>
-    {
-        T Current { get; }
-
-        bool MoveNext();
-    }
-
-    public interface IIterable<out T>
-    {
-        IIterator<T> GetIterator();
-    }
-
-    public class MyList<T> : IMyList<T>, IIterable<T>
+    public class MyList<T> : IMyList<T>, IEnumerable<T>
     {
         private T?[] _items = new T[6];
 
@@ -164,22 +153,24 @@ namespace DataStruct.Lib
             Count = 0;
         }
 
-        public void Shuffle()
-        {
-            new Random().Shuffle(_items);
-        }
-
-        public IIterator<T> GetIterator()
+        public IEnumerator<T> GetEnumerator()
         {
             return new MyListIterator(this);
         }
 
-        private class MyListIterator : IIterator<T>
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
+
+        private class MyListIterator : IEnumerator<T>
         {
             private readonly MyList<T> _list;
             private int _index = -1;
 
             public T Current => _list[_index];
+
+            object IEnumerator.Current => Current;
 
             public MyListIterator(MyList<T> list)
             {
@@ -190,6 +181,15 @@ namespace DataStruct.Lib
             {
                 _index++;
                 return _index < _list.Count;
+            }
+
+            public void Reset()
+            {
+                _index = -1;
+            }
+
+            public void Dispose()
+            {
             }
         }
 
