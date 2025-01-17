@@ -55,11 +55,11 @@ namespace DataStruct.Tests
 
             // Assert
             Assert.AreEqual(1, list.Count);
-            Assert.AreEqual(2, list[0]);
+            Assert.AreEqual(1, list[0]);
         }
 
         [Test("Remove elements form list test.")]
-        public bool RemoveElementsTest()
+        public void RemoveElementsTest()
         {
             // Arrange
             var list = new MyList<int>();
@@ -69,7 +69,7 @@ namespace DataStruct.Tests
             list.Remove(1);
 
             // Assert
-            return list.Count == 0;
+            Assert.AreEqual(0, list.Count);
         }
     }
 
@@ -77,7 +77,7 @@ namespace DataStruct.Tests
     class LinkedListTests
     {
         [Test]
-        public bool AddElementsToLinkedListTest()
+        public void AddElementsToLinkedListTest()
         {
             // Arrange
             var list = new MyLinkedList<int>();
@@ -86,11 +86,12 @@ namespace DataStruct.Tests
             list.Add(1);
 
             // Assert
-            return list.Count == 1 && list.First == 1;
+            Assert.AreEqual(1, list.Count);
+            Assert.AreEqual(1, list.First);
         }
 
         [Test]
-        public bool RemoveElementsTest()
+        public void RemoveElementsTest()
         {
             // Arrange
             var list = new MyLinkedList<int>();
@@ -100,7 +101,9 @@ namespace DataStruct.Tests
             list.Remove(1);
 
             // Assert
-            return list.Count == 0 && list.First == list.Last && list.Last == default;
+            Assert.AreEqual(0, list.Count);
+            Assert.AreEqual(list.First, list.Last);
+            Assert.AreEqual(list.First, default);
         }
     }
 
