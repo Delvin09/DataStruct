@@ -11,4 +11,10 @@
     <ProjectReference Include="..\DataStruct.Lib\DataStruct.Lib.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="MagicTests.Abstractions">
+      <HintPath>D:\Projects\c#_pro_01_11_24\MagicTests\MagicTests.Abstractions.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
